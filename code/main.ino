@@ -1,5 +1,9 @@
 #include <FreeROTS\Arduino_FreeRTOS.h>
 
+//Pin consts
+const int PWRled = 12;
+
+//Globals
 double *phBase = (double *) malloc(sizeof(double));
 
 void setup() {
@@ -28,7 +32,7 @@ void setup() {
     blinkLed,   /* Task function. */
     "Task1",     /* name of task. */
     10000,       /* Stack size of task */
-    NULL,        /* parameter of the task */
+    (void *) PWRled,        /* parameter of the task */
     1,           /* priority of the task */
     &BlinkLed);     /* Task handle to keep track of created task */
 }
@@ -40,5 +44,5 @@ void loop() {
 
 TaskHandle_t BlinkLed;
 void blinkLed(void *pvParameters){
-  for(;;){digitalWrite(LedToBlink, (millis() / 1000) % 2);}
+  for(;;){digitalWrite((int) PWRled, (millis() / 1000) % 2);}
   }
