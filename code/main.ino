@@ -1,8 +1,8 @@
+#include <FreeROTS\Arduino_FreeRTOS.h>
+
 double *phBase = (double *) malloc(sizeof(double));
 
 void setup() {
-  //#include <FreeROTS\Arduino_FreeRTOS.h>
-
   Serial.begin(9600);
   //Light power LED
   digitalWrite(12, HIGH);
@@ -24,7 +24,7 @@ void setup() {
   phBase = &average;
 
   //Set ready LED blinking
-  xTaskCreatePinnedToCore(
+  xTaskCreate(
     blinkLed,   /* Task function. */
     "Task1",     /* name of task. */
     10000,       /* Stack size of task */
