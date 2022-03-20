@@ -2,17 +2,17 @@
 
 //Pin consts
 LedControl display=LedControl(12,11,10,1); //display port here
-const int PWRled = 12;
-const int RDYled = 00;
-const int STSled = 00;
-const int TRGpin = 00;
-const int EHOpin = 00;
-const int distanceSW = 00;
-const int startSW = 00;
+//const int PWRled = 00;
+const int RDYled = 12;
+const int STSled = 13;
+const int TRGpin = 16;
+const int EHOpin = 17;
+const int distanceSW = 18;
+const int startSW = 19;
 const int PHgpios[] = {36, 37, 38, 39};
-const int LLleds[3];
-const int unitsSwitch;
-const int dataSwitch[1];
+const int LLleds[] = {21, 22, 23, 25};
+const int unitsSwitch = 26;
+const int dataSwitch[] = {27, 32};
 
 //Globals
 double *phBase = (double *) malloc(sizeof(double));
