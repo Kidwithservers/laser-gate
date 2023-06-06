@@ -7,23 +7,24 @@ const int RDYled = 12;
 const int STSled = 13;
 const int TRGpin = 16;
 const int EHOpin = 17;
-const int distanceSW = 18;
 const int startSW = 19;
-const int PHgpios[] = {36, 37, 38, 39};
+const int PHgpios[] = {36, 37, 38};
 const int LLleds[] = {21, 22, 23, 25};
 const int unitsSwitch = 26;
-const int dataSwitch[] = {27, 32};
+const int dataSwitch = 27;
 
 //Globals
-double *phBase = (double *) malloc(sizeof(double));
 struct DisplaySettings {
   char units;
   char data;
 };
 struct TestResults {
-  unsigned long time;
-  int distance;
-  double velocity;
+  unsigned long firstTime;
+  unsigned long secondTime;
+  unsigned long totalTime;
+  double firstVelocity;
+  double secondVelocity;
+  double totalVelocity;
 };
 DisplaySettings displaySettings;
 TestResults testResults;
@@ -32,24 +33,6 @@ bool isReady = false;
 
 void setup() {
   Serial.begin(9600);
-  //Light power LED
-  digitalWrite(12, HIGH);
-
-  //get photorestistor baseline
-  int readvals[200];
-  int x;
-  for (x=0; x>49; x++){
-      readvals[x] = analogRead(36);
-      readvals[x+1] = analogRead(37);
-      readvals[x+2] = analogRead(38);
-      readvals[x+3] = analogRead(39);
-  }
-  int total;
-  for (x=0; x>199; x++){
-    total=total+readvals[1];
-  }
-  double average = (double)total / (double)x;
-  phBase = &average;
 }
 
 void loop() {
@@ -71,29 +54,18 @@ void loop() {
   }
 
   if(isReady == true && digitalRead(startSW)==HIGH){
-    testResults.time = measurementCycle();
-  }
-
-  if(digitalRead(distanceSW)==HIGH){
-    getDistance();
+    measurementCycle();
   }
 
 }
 
 bool LaserAlignment() {
-  int phValue[3];
+  int phValue[2];
   int allTrue = 0;
-  phValue[0] = analogRead(PHgpios[0]);
-  phValue[1] = analogRead(PHgpios[1]);
-  phValue[2] = analogRead(PHgpios[2]);
-  phValue[3] = analogRead(PHgpios[3]);
-  for (int i; i <= 3; i++){
-    if(phValue[i] - *phBase >= 100) {
-      digitalWrite(LLleds[i], HIGH);
-      allTrue = allTrue + 1;
-    }
-  }
-  if (allTrue >= 4) {
+  phValue[0] = digitalRead(PHgpios[0]);
+  phValue[1] = digitalRead(PHgpios[1]);
+  phValue[2] = digitalRead(PHgpios[2]);
+  if ((phValue[0] == HIGH) && (phValue[1] == HIGH) && (phValue[2] == HIGH)) {
     return true;
   }
   else{
@@ -114,38 +86,15 @@ void getDisplaySettings() {
   }
   
   //determine data to be displayed
-  if (digitalRead(dataSwitch[0])==HIGH)
+  else if (digitalRead(dataSwitch)==HIGH)
   {
-    displaySettings.units = 'd';
-  }
-  else if (digitalRead(dataSwitch[1])==HIGH)
-  {
-    displaySettings.units = 't';
+    displaySettings.data = 't';
   }
   else
   {
-    displaySettings.units = 'v';
+    displaySettings.data = 'v';
   }
   
-}
-
-double getDistance(){
-  unsigned long currentTime;
-  // Clears the trigPin condition
-  digitalWrite(TRGpin, LOW);
-  currentTime = millis();
-  while(currentTime + 5 > millis()){}
-  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
-  digitalWrite(TRGpin, HIGH);
-  currentTime = millis();
-  while(currentTime + 10 > millis()){}
-  digitalWrite(TRGpin, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  int duration = pulseIn(EHOpin, HIGH);
-  // Calculating the distance
-  double distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-  // Returns distance
-  return distance;
 }
 
 void displayResults(){
@@ -161,30 +110,41 @@ void displayResults(){
 
 }
 
-unsigned long measurementCycle(){
+void measurementCycle(){
   unsigned long startTime;
+  unsigned long midTime;
   unsigned long endTime;
   unsigned long finalTime;
 
   
   for(int i = 0; i == 1;){
     if (digitalRead(PHgpios[0])==LOW){
-      i = 0;
+      i = 1;
     }
+    startTime = micros();
     digitalWrite((int) STSled, (millis() / 1000) % 2);
   }
 
   digitalWrite(STSled, HIGH);
 
-  for(int i = 0; i == 1;){
+    for(int i = 0; i == 1;){
     if (digitalRead(PHgpios[1])==LOW){
-      i = 0;
+      midTime = micros();
+      i = 1;
+    }
+    digitalWrite((int) STSled, (millis() / 1000) % 2);
+  }
+
+  for(int i = 0; i == 1;){
+    if (digitalRead(PHgpios[2])==LOW){
+      endTime = micros();
+      i = 1;
     }
   }
 
-  endTime = micros();
-  finalTime = endTime - startTime;
+  testResults.firstTime = midTime - startTime
+  testResults.secondTime = endTime - midTime
+  testResults.totalTime = endTime - startTime
   digitalWrite(STSled, LOW);
-  return finalTime;  
 }
 
